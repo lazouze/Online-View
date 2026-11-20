@@ -111,7 +111,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;co
   <div class="loading-card">
     <div class="loading-logo">🗺️</div>
     <div class="loading-title">Préparation de la carte</div>
-    <div id="loading-text" class="loading-text">Chargement des plans et des images…</div>
+    <div id="loading-text" class="loading-text">Chargement du menu…</div>
     <div class="loading-track"><div id="loading-bar"></div></div>
     <div id="loading-percent">0 %</div>
   </div>
@@ -136,33 +136,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;co
   const screen = document.getElementById('loading-screen');
   const bar = document.getElementById('loading-bar');
   const percent = document.getElementById('loading-percent');
-  const text = document.getElementById('loading-text');
-  if(!screen || !bar || !percent || !text) return;
+  if(!screen || !bar || !percent) return;
 
   let current = 0;
   let finished = false;
 
-  function setProgress(value, message){
+  function setProgress(value){
     current = Math.max(current, Math.min(100, value));
     bar.style.width = current + '%';
     percent.textContent = Math.round(current) + ' %';
-    if(message) text.textContent = message;
   }
 
-  setProgress(12, 'Initialisation de la page…');
+  setProgress(12);
 
-  const stages = [
-    [28, 'Chargement du plan…'],
-    [46, 'Préparation des images…'],
-    [66, 'Mise en place des panneaux…'],
-    [82, 'Finalisation de la page…']
-  ];
+  const stages = [28, 46, 66, 82];
 
   let i = 0;
   const timer = setInterval(function(){
     if(finished) return;
     if(i < stages.length){
-      setProgress(stages[i][0], stages[i][1]);
+      setProgress(stages[i]);
       i++;
     }else{
       clearInterval(timer);
@@ -173,7 +166,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;co
     if(finished) return;
     finished = true;
     clearInterval(timer);
-    setProgress(100, 'Page prête');
+    setProgress(100);
     setTimeout(function(){
       screen.classList.add('loading-hidden');
       setTimeout(function(){
