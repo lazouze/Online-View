@@ -137,6 +137,7 @@ html,body,#map{height:100%;margin:0}body{font-family:-apple-system,BlinkMacSyste
 .panel-gallery{margin-top:10px;border-top:1px solid #ddd;padding-top:9px}
 .panel-card{margin:0 0 9px 0;padding:6px;border:1px solid #ddd;border-radius:8px;background:#fafafa}
 .panel-card.road-sign-card img{width:96px;height:96px;object-fit:contain;margin:auto}
+.panel-card.road-sign-priority img{width:240px;max-width:100%;height:auto}
 .road-sign-plate{display:table;margin:4px auto 0;padding:3px 6px;border:1px solid #292929;border-radius:3px;background:#fff;color:#111;font-weight:bold;font-size:11px}
 #legend img[src*="France_road_sign"],#legend img[src^="data:image/svg+xml,"]{object-fit:contain}
 .panel-card img{display:block;width:100%;max-width:300px;height:auto;margin:0;border-radius:5px;cursor:zoom-in}
@@ -387,7 +388,15 @@ if(Object.keys(POINT_MARKERS).length!==22 ||
 const roadSignArt = {
   six: weightSign('6'),
   light: weightSign('3,5'),
-  priority: 'https://upload.wikimedia.org/wikipedia/commons/4/4b/France_road_sign_C18.svg',
+  priority: 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 230">
+    <rect x="2" y="2" width="316" height="226" rx="15" fill="#fff" stroke="#939ba3" stroke-width="4"/>
+    <g text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="29">
+      <text x="160" y="56" fill="#164b86">SI UNE VOITURE</text>
+      <text x="160" y="102" fill="#164b86">EST ENGAGÉE</text>
+      <text x="160" y="151" fill="#c22630">VOUS N’AVEZ PLUS</text>
+      <text x="160" y="198" fill="#c22630">LA PRIORITÉ</text>
+    </g>
+  </svg>`),
   bus: 'https://upload.wikimedia.org/wikipedia/commons/7/79/France_road_sign_C6.svg',
   noEntry: 'https://upload.wikimedia.org/wikipedia/commons/c/c1/France_road_sign_B1.svg'
 };
@@ -401,7 +410,7 @@ function weightSign(weight) {
   return 'data:image/svg+xml,' + encodeURIComponent(svg);
 }
 
-const priorityNote = 'Si un véhicule est engagé, vous n’avez plus la priorité.';
+const priorityNote = 'Si une voiture est engagée, vous n’avez plus la priorité.';
 const roadSigns = [
   {number:23, art:'six', title:'Limitation à 6 t', detail:'Remplacer le panneau existant dégradé.', gps:[44.91808, 4.520681]},
   {number:24, art:'six', title:'Limitation à 6 t — Cluac', detail:'Nouvelle pose près de la D21. Autorisation DDE mentionnée.', gps:[44.931788, 4.544511]},
@@ -417,7 +426,7 @@ const roadSigns = [
 
 function roadSignIllustration(sign) {
   const plate = sign.art === 'noEntry' ? '<div class="road-sign-plate">SAUF RIVERAINS</div>' : '';
-  return `<div class="panel-card road-sign-card"><img src="${roadSignArt[sign.art]}" alt="${sign.title}">${plate}</div>`;
+  return `<div class="panel-card road-sign-card ${sign.art === 'priority' ? 'road-sign-priority' : ''}"><img src="${roadSignArt[sign.art]}" alt="${sign.art === 'priority' ? sign.detail : sign.title}">${plate}</div>`;
 }
 
 roadSigns.forEach(sign => {
