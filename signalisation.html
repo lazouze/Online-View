@@ -136,6 +136,11 @@ html,body,#map{height:100%;margin:0}body{font-family:-apple-system,BlinkMacSyste
 /* Panneaux directionnels : chaque image est un panneau unique dans la direction demandée. */
 .panel-gallery{margin-top:10px;border-top:1px solid #ddd;padding-top:9px}
 .panel-card{margin:0 0 9px 0;padding:6px;border:1px solid #ddd;border-radius:8px;background:#fafafa}
+.panel-card.road-sign-card img{width:96px;height:96px;object-fit:contain;margin:auto}
+.road-sign-plate{display:table;margin:4px auto 0;padding:3px 6px;border:1px solid #292929;border-radius:3px;background:#fff;color:#111;font-weight:bold;font-size:11px}
+.road-sign-pending{padding:7px 5px;border-top:1px solid #ddd}
+.road-sign-pending p{margin:4px 0}
+#legend img[src*="France_road_sign"],#legend img[src^="data:image/svg+xml,"]{object-fit:contain}
 .panel-card img{display:block;width:100%;max-width:300px;height:auto;margin:0;border-radius:5px;cursor:zoom-in}
 
 /* Écran de chargement */
@@ -381,6 +386,55 @@ if(Object.keys(POINT_MARKERS).length!==22 ||
 }
 
 
+const roadSignArt = {
+  six: weightSign('6'),
+  light: weightSign('3,5'),
+  priority: 'https://upload.wikimedia.org/wikipedia/commons/4/4b/France_road_sign_C18.svg',
+  bus: 'https://upload.wikimedia.org/wikipedia/commons/7/79/France_road_sign_C6.svg',
+  noEntry: 'https://upload.wikimedia.org/wikipedia/commons/c/c1/France_road_sign_B1.svg'
+};
+
+function weightSign(weight) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="47" fill="white" stroke="#ddd"/>
+    <circle cx="50" cy="50" r="41" fill="none" stroke="#ce1420" stroke-width="10"/>
+    <text x="50" y="61" text-anchor="middle" font-family="Arial,sans-serif" font-weight="bold" font-size="27">${weight} t</text>
+  </svg>`;
+  return 'data:image/svg+xml,' + encodeURIComponent(svg);
+}
+
+const priorityNote = 'Si un véhicule est engagé, vous n’avez plus la priorité.';
+const roadSigns = [
+  {number:23, art:'six', title:'Limitation à 6 t', detail:'Remplacer le panneau existant dégradé.', gps:[44.91808, 4.520681]},
+  {number:24, art:'six', title:'Limitation à 6 t — Cluac', detail:'Nouvelle pose près de la D21. Autorisation DDE mentionnée.', gps:[44.931788, 4.544511]},
+  {number:25, art:'six', title:'Limitation à 6 t — Boissier', detail:'Nouvelle pose.', gps:[44.917199, 4.516329]},
+  {number:26, art:'priority', title:'Priorité de passage — Pont de Créas', detail:priorityNote, gps:[44.904419, 4.478512]},
+  {number:27, art:'priority', title:'Priorité de passage — École', detail:priorityNote, gps:[44.932731, 4.485466]},
+  {number:28, art:'bus', title:'Arrêt de bus — Le Buis', detail:'Premier emplacement.', gps:[44.915149, 4.512881]},
+  {number:29, art:'bus', title:'Arrêt de bus — Le Buis', detail:'Deuxième emplacement.', gps:[44.915131, 4.512804]},
+  {number:30, art:'noEntry', title:'Sens interdit — Nonières', detail:'Panonceau « Sauf riverains ».', gps:[44.93327, 4.486694]},
+  {art:'light', title:'Limitation à 3,5 t — Saint-Julien', detail:'Montée de l’église. Deux panneaux à poser. Coordonnées GPS à compléter.', quantity:2}
+];
+
+function roadSignIllustration(sign) {
+  const plate = sign.art === 'noEntry' ? '<div class="road-sign-plate">SAUF RIVERAINS</div>' : '';
+  return `<div class="panel-card road-sign-card"><img src="${roadSignArt[sign.art]}" alt="${sign.title}">${plate}</div>`;
+}
+
+roadSigns.filter(sign => sign.gps).forEach(sign => {
+  const [lat, lng] = sign.gps;
+  const streetView = 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=' + encodeURIComponent(sign.gps.join(','));
+  const popup = `<div class="photo-popup"><strong>${sign.title}</strong><p>${sign.detail}</p>
+    <a class="streetview-link" href="${streetView}" target="_blank" rel="noopener noreferrer">Voir ce point sur Google Street View</a>
+    <div class="coords"><b>Longitude</b><br><span>${lng.toFixed(6)}</span></div>
+    <div class="coords"><b>Latitude</b><br><span>${lat.toFixed(6)}</span></div>
+    <div class="panel-gallery">${roadSignIllustration(sign)}</div>
+  </div>`;
+  L.marker(sign.gps, {
+    icon:numberIcon(sign.number), title:sign.title, pointNumber:sign.number, pointColors:['#ffffff']
+  }).bindPopup(popup, {maxWidth:320}).addTo(markers);
+});
+
 map.addLayer(markers);map.fitBounds(markers.getBounds().pad(0.08));
 </script>
 <script>
@@ -547,7 +601,8 @@ const PANELS_BY_POINT=Object.freeze({
     const rows=Object.keys(COLOR_NAMES).map(function(c){
       return `<div class="legend-summary-row"><span>${COLOR_NAMES[c]}</span><b>${counts[c]||0}</b></div>`;
     }).join('');
-    summary.innerHTML=rows+`<div class="legend-summary-row" style="border-top:1px solid #ddd;margin-top:4px;padding-top:4px"><span>Total panneaux</span><b>${totalPanels}</b></div>`;
+    const roadSignCount=roadSigns.reduce((total,sign)=>total+(sign.quantity||1),0);
+    summary.innerHTML=rows+`<div class="legend-summary-row"><span>Signalisation routière</span><b>${roadSignCount}</b></div>`+`<div class="legend-summary-row" style="border-top:1px solid #ddd;margin-top:4px;padding-top:4px"><span>Total panneaux</span><b>${totalPanels+roadSignCount}</b></div>`;
   }
 
   toggle.addEventListener('click',function(){
@@ -574,7 +629,16 @@ const PANELS_BY_POINT=Object.freeze({
     if(typeof content==='string'){const m=content.match(/<img[^>]+src="([^"]+)"/);if(m) imgSrc=m[1];}
     if(imgSrc){const img=document.createElement('img');img.className='legend-thumb';img.src=imgSrc;img.alt=n;item.appendChild(img);}
     const name=document.createElement('span');name.className='legend-name';name.textContent=n.replace(/\.(jpeg|jpg|png|webp)$/i,'');item.appendChild(name);
-    item.addEventListener('click',function(){map.setView(marker.getLatLng(),Math.max(map.getZoom(),17));marker.openPopup();});
+    item.addEventListener('click',function(){
+      if(num<=22){map.setView(marker.getLatLng(),Math.max(map.getZoom(),17));marker.openPopup();return;}
+      markers.zoomToShowLayer(marker,()=>marker.openPopup());
+    });
+    list.appendChild(item);
+  });
+  roadSigns.filter(sign=>!sign.gps).forEach(sign=>{
+    const item=document.createElement('div');
+    item.className='road-sign-pending';
+    item.innerHTML=`<strong>${sign.title}</strong><p>${sign.detail}</p>${roadSignIllustration(sign)}`;
     list.appendChild(item);
   });
 })();
