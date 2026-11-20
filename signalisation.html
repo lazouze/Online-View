@@ -138,8 +138,6 @@ html,body,#map{height:100%;margin:0}body{font-family:-apple-system,BlinkMacSyste
 .panel-card{margin:0 0 9px 0;padding:6px;border:1px solid #ddd;border-radius:8px;background:#fafafa}
 .panel-card.road-sign-card img{width:96px;height:96px;object-fit:contain;margin:auto}
 .road-sign-plate{display:table;margin:4px auto 0;padding:3px 6px;border:1px solid #292929;border-radius:3px;background:#fff;color:#111;font-weight:bold;font-size:11px}
-.road-sign-pending{padding:7px 5px;border-top:1px solid #ddd}
-.road-sign-pending p{margin:4px 0}
 #legend img[src*="France_road_sign"],#legend img[src^="data:image/svg+xml,"]{object-fit:contain}
 .panel-card img{display:block;width:100%;max-width:300px;height:auto;margin:0;border-radius:5px;cursor:zoom-in}
 
@@ -413,7 +411,8 @@ const roadSigns = [
   {number:28, art:'bus', title:'Arrêt de bus — Le Buis', detail:'Premier emplacement.', gps:[44.915149, 4.512881]},
   {number:29, art:'bus', title:'Arrêt de bus — Le Buis', detail:'Deuxième emplacement.', gps:[44.915131, 4.512804]},
   {number:30, art:'noEntry', title:'Sens interdit — Nonières', detail:'Panonceau « Sauf riverains ».', gps:[44.93327, 4.486694]},
-  {art:'light', title:'Limitation à 3,5 t — Saint-Julien', detail:'Montée de l’église. Deux panneaux à poser. Coordonnées GPS à compléter.', quantity:2}
+  {number:31, art:'light', title:'Limitation à 3,5 t — Saint-Julien', detail:'Montée de l’église. Premier emplacement.', gps:[44.918389, 4.508267]},
+  {number:32, art:'light', title:'Limitation à 3,5 t — Saint-Julien', detail:'Montée de l’église. Deuxième emplacement.', gps:[44.917425, 4.510429]}
 ];
 
 function roadSignIllustration(sign) {
@@ -421,7 +420,7 @@ function roadSignIllustration(sign) {
   return `<div class="panel-card road-sign-card"><img src="${roadSignArt[sign.art]}" alt="${sign.title}">${plate}</div>`;
 }
 
-roadSigns.filter(sign => sign.gps).forEach(sign => {
+roadSigns.forEach(sign => {
   const [lat, lng] = sign.gps;
   const streetView = 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=' + encodeURIComponent(sign.gps.join(','));
   const popup = `<div class="photo-popup"><strong>${sign.title}</strong><p>${sign.detail}</p>
@@ -601,7 +600,7 @@ const PANELS_BY_POINT=Object.freeze({
     const rows=Object.keys(COLOR_NAMES).map(function(c){
       return `<div class="legend-summary-row"><span>${COLOR_NAMES[c]}</span><b>${counts[c]||0}</b></div>`;
     }).join('');
-    const roadSignCount=roadSigns.reduce((total,sign)=>total+(sign.quantity||1),0);
+    const roadSignCount=roadSigns.length;
     summary.innerHTML=rows+`<div class="legend-summary-row"><span>Signalisation routière</span><b>${roadSignCount}</b></div>`+`<div class="legend-summary-row" style="border-top:1px solid #ddd;margin-top:4px;padding-top:4px"><span>Total panneaux</span><b>${totalPanels+roadSignCount}</b></div>`;
   }
 
@@ -633,12 +632,6 @@ const PANELS_BY_POINT=Object.freeze({
       if(num<=22){map.setView(marker.getLatLng(),Math.max(map.getZoom(),17));marker.openPopup();return;}
       markers.zoomToShowLayer(marker,()=>marker.openPopup());
     });
-    list.appendChild(item);
-  });
-  roadSigns.filter(sign=>!sign.gps).forEach(sign=>{
-    const item=document.createElement('div');
-    item.className='road-sign-pending';
-    item.innerHTML=`<strong>${sign.title}</strong><p>${sign.detail}</p>${roadSignIllustration(sign)}`;
     list.appendChild(item);
   });
 })();
