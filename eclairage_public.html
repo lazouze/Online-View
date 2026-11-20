@@ -120,8 +120,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
   background:linear-gradient(145deg,#fff,#d9e1e8);color:#18232d;
   box-shadow:0 8px 28px rgba(0,0,0,.28);font-size:27px;font-weight:800;
 }
-.loading-title{font-size:20px;font-weight:750;letter-spacing:.1px;margin-bottom:7px}
-.loading-text{font-size:13.5px;color:rgba(255,255,255,.72);margin-bottom:20px}
+.loading-title{font-size:20px;font-weight:750;letter-spacing:.1px;margin-bottom:20px}
 .loading-track{height:7px;border-radius:999px;background:rgba(255,255,255,.13);overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.22)}
 .loading-bar{height:100%;width:8%;border-radius:999px;background:linear-gradient(90deg,#fff,#aebdca);box-shadow:0 0 14px rgba(255,255,255,.3);transition:width .35s ease}
 .loading-percent{margin-top:10px;font-size:11.5px;color:rgba(255,255,255,.55);font-variant-numeric:tabular-nums}
@@ -131,8 +130,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
 <div id="loading-screen" aria-live="polite" aria-label="Chargement de la carte">
   <div class="loading-card">
     <div class="loading-mark">✦</div>
-    <div class="loading-title">Éclairage public</div>
-    <div class="loading-text" id="loading-text">Chargement de la carte et des photos…</div>
+    <div class="loading-title">Chargement de la carte</div>
     <div class="loading-track"><div class="loading-bar" id="loading-bar"></div></div>
     <div class="loading-percent" id="loading-percent">8 %</div>
   </div>
@@ -146,7 +144,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
 <div id="map"></div>
 <div id="title">
   <div>Belsentes — éclairage public</div>
-  <a href="https://lazouze.github.io/Online-View/index.html">Revenir au menu</a>
+  <a href="https://lazouze.github.io/Online-View/index.html?v=chargement-2">Revenir au menu</a>
 </div>
 <div id="hint">Cliquez sur un numéro pour voir la photo et ses coordonnées GPS</div>
 <div id="legend">
@@ -163,29 +161,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
   const screen=document.getElementById('loading-screen');
   const bar=document.getElementById('loading-bar');
   const percent=document.getElementById('loading-percent');
-  const text=document.getElementById('loading-text');
   let value=8;
   let finished=false;
 
-  function setProgress(v,label){
+  function setProgress(v){
     value=Math.max(value,Math.min(100,v));
     bar.style.width=value+'%';
     percent.textContent=Math.round(value)+' %';
-    if(label) text.textContent=label;
   }
 
   // Progression visuelle pendant le décodage des nombreuses photos intégrées.
   const timer=setInterval(function(){
     if(finished) return;
-    if(value<55) setProgress(value+3.5,'Chargement des photos…');
-    else if(value<82) setProgress(value+1.5,'Préparation des points sur la carte…');
-    else if(value<94) setProgress(value+.45,'Finalisation…');
+    if(value<55) setProgress(value+3.5);
+    else if(value<82) setProgress(value+1.5);
+    else if(value<94) setProgress(value+.45);
   },180);
 
   window.addEventListener('load',function(){
     finished=true;
     clearInterval(timer);
-    setProgress(100,'Carte prête');
+    setProgress(100);
     setTimeout(function(){ screen.classList.add('hidden'); },420);
   });
 })();
